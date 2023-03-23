@@ -23,15 +23,15 @@
 
 package microsoft.exchange.webservices.data.core;
 
-import org.apache.http.conn.ssl.DefaultHostnameVerifier;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.ssl.SSLContexts;
+import java.security.GeneralSecurityException;
 
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 
-import java.security.GeneralSecurityException;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLContexts;
+import org.apache.http.conn.ssl.StrictHostnameVerifier;
+import org.apache.http.conn.ssl.X509HostnameVerifier;
 
 /**
  * <p>
@@ -81,7 +81,7 @@ public class EwsSSLProtocolSocketFactory extends SSLConnectionSocketFactory {
   /**
    * Default hostname verifier.
    */
-  private static final HostnameVerifier DEFAULT_HOSTNAME_VERIFIER = new DefaultHostnameVerifier();
+	private static final X509HostnameVerifier DEFAULT_HOSTNAME_VERIFIER = new StrictHostnameVerifier();
 
 
   /**
@@ -97,7 +97,7 @@ public class EwsSSLProtocolSocketFactory extends SSLConnectionSocketFactory {
    * @param hostnameVerifier hostname verifier
    */
   public EwsSSLProtocolSocketFactory(
-    SSLContext context, HostnameVerifier hostnameVerifier
+			final SSLContext context, final X509HostnameVerifier hostnameVerifier
   ) {
     super(context, hostnameVerifier);
     this.sslcontext = context;
@@ -112,7 +112,7 @@ public class EwsSSLProtocolSocketFactory extends SSLConnectionSocketFactory {
    * @return socket factory for SSL protocol
    * @throws GeneralSecurityException on security error
    */
-  public static EwsSSLProtocolSocketFactory build(TrustManager trustManager)
+  public static EwsSSLProtocolSocketFactory build(final TrustManager trustManager)
     throws GeneralSecurityException {
     return build(trustManager, DEFAULT_HOSTNAME_VERIFIER);
   }
@@ -126,9 +126,9 @@ public class EwsSSLProtocolSocketFactory extends SSLConnectionSocketFactory {
    * @throws GeneralSecurityException on security error
    */
   public static EwsSSLProtocolSocketFactory build(
-    TrustManager trustManager, HostnameVerifier hostnameVerifier
+			final TrustManager trustManager, final X509HostnameVerifier hostnameVerifier
   ) throws GeneralSecurityException {
-    SSLContext sslContext = createSslContext(trustManager);
+    final SSLContext sslContext = createSslContext(trustManager);
     return new EwsSSLProtocolSocketFactory(sslContext, hostnameVerifier);
   }
 
@@ -139,10 +139,10 @@ public class EwsSSLProtocolSocketFactory extends SSLConnectionSocketFactory {
    * @return initialized SSL context
    * @throws GeneralSecurityException on security error
    */
-  public static SSLContext createSslContext(TrustManager trustManager)
+  public static SSLContext createSslContext(final TrustManager trustManager)
     throws GeneralSecurityException {
-    EwsX509TrustManager x509TrustManager = new EwsX509TrustManager(null, trustManager);
-    SSLContext sslContext = SSLContexts.createDefault();
+    final EwsX509TrustManager x509TrustManager = new EwsX509TrustManager(null, trustManager);
+    final SSLContext sslContext = SSLContexts.createDefault();
     sslContext.init(
       null,
       new TrustManager[] { x509TrustManager },
@@ -159,11 +159,13 @@ public class EwsSSLProtocolSocketFactory extends SSLConnectionSocketFactory {
     return sslcontext;
   }
 
-  public boolean equals(Object obj) {
+  @Override
+public boolean equals(final Object obj) {
     return ((obj != null) && obj.getClass().equals(EwsSSLProtocolSocketFactory.class));
   }
 
-  public int hashCode() {
+  @Override
+public int hashCode() {
     return EwsSSLProtocolSocketFactory.class.hashCode();
   }
 
